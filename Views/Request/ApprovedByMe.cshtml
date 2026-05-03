@@ -1,0 +1,181 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Demandes approuvées";
+    var requests = Model as List<GpsAdminServer.Models.TravelRequest>;
+    var user = ViewBag.User as GpsAdminServer.Models.ApplicationUser;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Approuvées par moi - GPS Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .navbar {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+            .logo span {
+                color: #3498db;
+            }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .header h2 {
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #3498db;
+            color: white;
+        }
+
+        .status-approved {
+            background: #27ae60;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .status-admin {
+            background: #2980b9;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .btn-detail {
+            background: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo"><span>🚗</span> GPS Tracking Admin</div>
+        <div class="nav-links">
+            <a href="/Request/Dashboard">Dashboard</a>
+            <a href="/Request/MyRequests">Mes demandes</a>
+            <a href="/Request/PendingApprovals">À approuver</a>
+            <a href="/Request/ApprovedByMe" class="active">Approuvées par moi</a>
+            <a href="/Account/Logout">Déconnexion</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h2><i class="fas fa-check-circle"></i> Demandes que j'ai approuvées</h2>
+        </div>
+
+        @if (requests != null && requests.Any())
+        {
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Employé</th>
+                    <th>Destination</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                    <th>Approuvé le</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var request in requests)
+                    {
+                <tr>
+                    <td>@request.Id</td>
+                    <td>@request.EmployeeName</td>
+                    <td>@request.Destination</td>
+                    <td>@request.TravelDate.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        @if (request.Status == "SupervisorApproved")
+                                {
+                        <span class="status-approved">Approuvée (Superviseur)</span>
+                                }
+                                else
+                                {
+                        <span class="status-admin">Approuvée (Admin)</span>
+                                }
+                    </td>
+                    <td>@request.SupervisorApprovedAt?.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>
+                        <a href="/Request/RequestDetails?id=@request.Id" class="btn-detail">Détails</a>
+                    </td>
+                </tr>
+                    }
+            </tbody>
+        </table>
+        }
+        else
+        {
+        <div class="empty-state">
+            <i class="fas fa-check-circle" style="font-size: 48px; color: #27ae60;"></i>
+            <p>Vous n'avez encore approuvé aucune demande</p>
+        </div>
+        }
+    </div>
+</body>
+</html>

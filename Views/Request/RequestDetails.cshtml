@@ -1,0 +1,246 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Détails de la demande";
+    var request = Model as GpsAdminServer.Models.TravelRequest;
+    var user = ViewBag.User as GpsAdminServer.Models.ApplicationUser;
+    var vehicle = ViewBag.Vehicle as GpsAdminServer.Models.Vehicle;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Détails - GPS Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .navbar {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+            .logo span {
+                color: #3498db;
+            }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+            .card h2 {
+                margin-bottom: 20px;
+                color: #2c3e50;
+                border-bottom: 2px solid #3498db;
+                padding-bottom: 10px;
+            }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .info-item {
+            margin-bottom: 15px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            color: #666;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            background: #f39c12;
+            color: white;
+        }
+
+        .status-supervisor {
+            background: #3498db;
+            color: white;
+        }
+
+        .status-approved {
+            background: #27ae60;
+            color: white;
+        }
+
+        .status-rejected {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .status-completed {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .comments {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #2c3e50;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+
+        .map-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #3498db;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo"><span>🚗</span> GPS Tracking Admin</div>
+        <div class="nav-links">
+            <a href="/Request/Dashboard">Dashboard</a>
+            <a href="/Request/MyRequests">Mes demandes</a>
+            <a href="/Account/Logout">Déconnexion</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2><i class="fas fa-file-alt"></i> Détails de la demande #@request?.Id</h2>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Employé</div>
+                    <div class="info-value">@request?.EmployeeName</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Statut</div>
+                    <div class="info-value">
+                        @if (request?.Status == "Pending") { <span class="status status-pending">En attente</span> }
+                        else if (request?.Status == "SupervisorApproved") { <span class="status status-supervisor">Approuvée (Superviseur)</span> }
+                        else if (request?.Status == "AdminApproved") { <span class="status status-approved">Approuvée (Admin)</span> }
+                        else if (request?.Status == "Completed") { <span class="status status-completed">Terminée</span> }
+                        else if (request?.Status == "Rejected") { <span class="status status-rejected">Refusée</span> }
+                        else { <span class="status">@request?.Status</span> }
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">📍 Départ</div>
+                    <div class="info-value">@request?.Departure</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">📍 Destination</div>
+                    <div class="info-value">
+                        @request?.Destination
+                        <a href="https://www.google.com/maps?q=@Uri.EscapeDataString(request?.Destination ?? "")" target="_blank" class="map-link">
+                            <i class="fas fa-map-marker-alt"></i> Voir sur Maps
+                        </a>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">📅 Date du voyage</div>
+                    <div class="info-value">@(request?.TravelDate.ToString("dd/MM/yyyy"))</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">⏰ Heure d'arrivée</div>
+                    <div class="info-value">@(request?.ArrivalTime.ToString("HH:mm"))</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">📅 Date de création</div>
+                    <div class="info-value">@(request?.CreatedAt.ToString("dd/MM/yyyy HH:mm"))</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">🚗 Véhicule assigné</div>
+                    <div class="info-value">
+                        @if (vehicle != null)
+                        {
+                        <text>@vehicle.Brand @vehicle.Model - @vehicle.PlateNumber</text>
+                        }
+                        else
+                        {
+                        <text>Non assigné</text>
+                        }
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">💼 Motif</div>
+                    <div class="info-value">@request?.Purpose</div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(request?.SupervisorComments))
+            {
+            <div class="comments">
+                <strong><i class="fas fa-comment"></i> Commentaires du superviseur</strong>
+                <p>@request?.SupervisorComments</p>
+                <small>@(request?.SupervisorApprovedAt?.ToString("dd/MM/yyyy HH:mm"))</small>
+            </div>
+            }
+
+            @if (!string.IsNullOrEmpty(request?.AdminComments))
+            {
+            <div class="comments">
+                <strong><i class="fas fa-comment"></i> Commentaires de l'administrateur</strong>
+                <p>@request?.AdminComments</p>
+                <small>@(request?.AdminApprovedAt?.ToString("dd/MM/yyyy HH:mm"))</small>
+            </div>
+            }
+        </div>
+
+        <a href="javascript:history.back()" class="btn-back"><i class="fas fa-arrow-left"></i> Retour</a>
+    </div>
+</body>
+</html>

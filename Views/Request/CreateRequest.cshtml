@@ -1,0 +1,219 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Nouvelle demande";
+    var user = ViewBag.User as GpsAdminServer.Models.ApplicationUser;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nouvelle demande - GPS Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .navbar {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+            .logo span {
+                color: #3498db;
+            }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+            .card h2 {
+                margin-bottom: 20px;
+                color: #2c3e50;
+            }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: bold;
+                color: #2c3e50;
+            }
+
+            .form-group input, .form-group textarea, .form-group select {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                font-size: 14px;
+            }
+
+                .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+                    outline: none;
+                    border-color: #3498db;
+                }
+
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+            .btn-submit:hover {
+                background: #2980b9;
+            }
+
+        .btn-back {
+            display: inline-block;
+            margin-top: 15px;
+            color: #666;
+            text-decoration: none;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-error {
+            background: #fdecea;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+
+        .alert-success {
+            background: #e8f8f5;
+            color: #27ae60;
+            border: 1px solid #27ae60;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo"><span>🚗</span> GPS Tracking Admin</div>
+        <div class="nav-links">
+            <a href="/Request/Dashboard">Dashboard</a>
+            <a href="/Request/MyRequests">Mes demandes</a>
+            <a href="/Account/Logout">Déconnexion</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2><i class="fas fa-plus-circle"></i> Nouvelle demande de voyage</h2>
+
+            @if (!string.IsNullOrEmpty(ViewBag.Error))
+            {
+            <div class="alert alert-error">@ViewBag.Error</div>
+            }
+
+            <form method="post" action="/Request/CreateRequest">
+                <div class="form-group">
+                    <label>Employé</label>
+                    <input type="text" value="@user?.FullName" disabled />
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label>📍 Départ</label>
+                        <input type="text" name="Departure" placeholder="Adresse de départ" required />
+                    </div>
+                    <div class="form-group">
+                        <label>📍 Destination</label>
+                        <input type="text" name="Destination" placeholder="Destination" required />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label>📅 Date du voyage</label>
+                        <input type="text" id="TravelDate" name="TravelDate" required />
+                    </div>
+                    <div class="form-group">
+                        <label>⏰ Heure d'arrivée</label>
+                        <input type="text" id="ArrivalTime" name="ArrivalTime" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>💼 Motif du voyage</label>
+                    <textarea name="Purpose" rows="3" placeholder="Raison du déplacement" required></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">Envoyer la demande</button>
+                <a href="/Request/Dashboard" class="btn-back">← Retour</a>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        flatpickr("#TravelDate", {
+            locale: "fr",
+            minDate: "today",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y"
+        });
+
+        flatpickr("#ArrivalTime", {
+            locale: "fr",
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            time_24hr: true
+        });
+    </script>
+</body>
+</html>

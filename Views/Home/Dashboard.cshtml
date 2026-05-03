@@ -1,0 +1,369 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Dashboard GPS";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard GPS - Suivi des chauffeurs</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+
+        .info-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            max-width: 350px;
+            max-height: 85vh;
+            overflow-y: auto;
+            font-size: 13px;
+        }
+
+            .info-panel h3 {
+                margin-bottom: 10px;
+                color: #2c3e50;
+                font-size: 16px;
+                border-bottom: 2px solid #2c3e50;
+                padding-bottom: 5px;
+            }
+
+        .chauffeur-item {
+            padding: 10px;
+            margin: 8px 0;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+            .chauffeur-item:hover {
+                background: #f0f0f0;
+                transform: translateX(-2px);
+            }
+
+        .chauffeur-nom {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-online {
+            background-color: #27ae60;
+            box-shadow: 0 0 5px #27ae60;
+        }
+
+        .status-offline {
+            background-color: #e74c3c;
+        }
+
+        .speed {
+            color: #2980b9;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 3px;
+        }
+
+        .vehicle-sn {
+            font-size: 11px;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .last-update {
+            font-size: 10px;
+            color: #999;
+            margin-top: 3px;
+        }
+
+        .refresh-btn {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+            .refresh-btn:hover {
+                background: #1a252f;
+            }
+
+        .stats {
+            background: #ecf0f1;
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .coordinates {
+            font-family: monospace;
+            font-size: 10px;
+            color: #555;
+            margin-top: 3px;
+        }
+
+        .leaflet-popup-content {
+            font-size: 12px;
+            min-width: 200px;
+        }
+
+            .leaflet-popup-content a {
+                color: #2980b9;
+                text-decoration: none;
+            }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        .header-title {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 14px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-title">
+        🚗 GPS Tracking Admin
+    </div>
+
+    <div id="map"></div>
+
+    <div class="info-panel">
+        <h3>🚗 Chauffeurs en temps réel</h3>
+        <div class="stats" id="stats">
+            📊 Chargement...
+        </div>
+        <div id="chauffeurs-list">
+            <p style="text-align: center; color: #999;">Chargement des chauffeurs...</p>
+        </div>
+        <button class="refresh-btn" onclick="loadPositions()">
+            🔄 Rafraîchir maintenant
+        </button>
+        <hr style="margin: 10px 0;" />
+        <small>
+            🔄 Mise à jour automatique toutes les 10 secondes<br />
+            📍 Cliquez sur un chauffeur pour centrer la carte
+        </small>
+    </div>
+
+    <script>
+        // Initialiser la carte centrée sur Tunis
+        var map = L.map('map').setView([36.8065, 10.1815], 12);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        var markers = {};
+
+        function getValue(data, key) {
+            if (!data) return 0;
+            var val = data[key];
+            if (Array.isArray(val)) {
+                return val.length > 0 ? val[0] : 0;
+            }
+            return val || 0;
+        }
+
+        function getStringValue(data, key, defaultValue) {
+            if (!data) return defaultValue;
+            var val = data[key];
+            if (Array.isArray(val)) {
+                return val.length > 0 ? val[0] : defaultValue;
+            }
+            return val || defaultValue;
+        }
+
+        async function loadPositions() {
+            try {
+                var timestamp = new Date().getTime();
+                var response = await fetch('/Home/GetPositions?_=' + timestamp);
+                var positions = await response.json();
+                console.log("Positions reçues:", positions);
+                updateMapAndList(positions);
+            } catch (e) {
+                console.error('Erreur:', e);
+                document.getElementById("chauffeurs-list").innerHTML = '<p style="color: red; text-align: center;">❌ Erreur de connexion</p>';
+                document.getElementById("stats").innerHTML = '📊 Erreur de connexion';
+            }
+        }
+
+        function updateMapAndList(positions) {
+            var container = document.getElementById("chauffeurs-list");
+            var statsDiv = document.getElementById("stats");
+
+            if (!positions || Object.keys(positions).length === 0) {
+                container.innerHTML = "<p>⚠️ Aucun chauffeur actif</p>";
+                statsDiv.innerHTML = "📊 Aucun chauffeur en ligne";
+                return;
+            }
+
+            var activeCount = 0;
+            var html = "";
+
+            for (var id in positions) {
+                var data = positions[id];
+
+                var lat = parseFloat(getValue(data, 'lat')) || 0;
+                var lng = parseFloat(getValue(data, 'lng')) || 0;
+                var speed = parseFloat(getValue(data, 'speed_kmh')) || 0;
+                var nom = getStringValue(data, 'nom', id);
+                var lastUpdate = getStringValue(data, 'last_update', 'N/A');
+                var mapsLink = getStringValue(data, 'maps_link', '');
+
+                var isValidPosition = !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+
+                if (isValidPosition) {
+                    activeCount++;
+
+                    if (markers[id]) {
+                        markers[id].setLatLng([lat, lng]);
+                        markers[id].getPopup().setContent(`
+                                <b>${nom}</b><br/>
+                                🚗 Vitesse: ${speed.toFixed(1)} km/h<br/>
+                                📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}<br/>
+                                🕐 ${lastUpdate}<br/>
+                                <a href="${mapsLink}" target="_blank">🗺️ Google Maps</a>
+                            `);
+                    } else {
+                        var customIcon = L.divIcon({
+                            html: `<div style="background: #2c3e50; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; white-space: nowrap;">
+                                        <b>${nom}</b> ${speed.toFixed(0)} km/h
+                                       </div>`,
+                            iconSize: [120, 30],
+                            popupAnchor: [0, -15],
+                            className: 'custom-marker'
+                        });
+
+                        markers[id] = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+                        markers[id].bindPopup(`
+                                <b>${nom}</b><br/>
+                                🚗 Vitesse: ${speed.toFixed(1)} km/h<br/>
+                                📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}<br/>
+                                🕐 ${lastUpdate}<br/>
+                                <a href="${mapsLink}" target="_blank">🗺️ Google Maps</a>
+                            `);
+                    }
+
+                    html += `
+                            <div class="chauffeur-item" onclick="focusOnChauffeur(${lat}, ${lng})">
+                                <div>
+                                    <span class="status-badge status-online"></span>
+                                    <span class="chauffeur-nom">${nom}</span>
+                                </div>
+                                <div class="speed">⚡ ${speed.toFixed(1)} km/h</div>
+                                <div class="vehicle-sn">📡 ${id}</div>
+                                <div class="coordinates">📍 ${lat.toFixed(5)}, ${lng.toFixed(5)}</div>
+                                <div class="last-update">🕐 ${lastUpdate}</div>
+                            </div>
+                        `;
+                } else {
+                    html += `
+                            <div class="chauffeur-item" style="opacity: 0.6; cursor: default;" onclick="null">
+                                <div>
+                                    <span class="status-badge status-offline"></span>
+                                    <span class="chauffeur-nom">${nom}</span>
+                                </div>
+                                <div class="vehicle-sn">📡 ${id}</div>
+                                <div class="last-update">⏳ En attente de position GPS...</div>
+                            </div>
+                        `;
+                }
+            }
+
+            var total = Object.keys(positions).length;
+            statsDiv.innerHTML = `📊 ${activeCount} chauffeur(s) actif(s) sur ${total}`;
+            container.innerHTML = html;
+
+            if (activeCount > 0 && !window._hasCentered) {
+                for (var id in positions) {
+                    var data = positions[id];
+                    var lat = parseFloat(getValue(data, 'lat')) || 0;
+                    var lng = parseFloat(getValue(data, 'lng')) || 0;
+                    if (lat !== 0 && lng !== 0) {
+                        map.setView([lat, lng], 12);
+                        window._hasCentered = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        function focusOnChauffeur(lat, lng) {
+            map.setView([lat, lng], 16);
+            for (var id in markers) {
+                var markerPos = markers[id].getLatLng();
+                if (Math.abs(markerPos.lat - lat) < 0.0001 && Math.abs(markerPos.lng - lng) < 0.0001) {
+                    markers[id].openPopup();
+                    break;
+                }
+            }
+        }
+
+        loadPositions();
+        setInterval(loadPositions, 10000);
+        console.log("✅ Dashboard GPS chargé");
+    </script>
+</body>
+</html>

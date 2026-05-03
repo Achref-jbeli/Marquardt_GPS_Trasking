@@ -1,0 +1,182 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Notifications";
+    var notifications = Model as List<GpsAdminServer.Models.Notification>;
+    var user = ViewBag.User as GpsAdminServer.Models.ApplicationUser;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notifications - GPS Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .navbar {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+            .logo span {
+                color: #3498db;
+            }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .header h2 {
+            margin-bottom: 20px;
+        }
+
+        .notification-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+            border-left: 4px solid #3498db;
+        }
+
+            .notification-item:hover {
+                transform: translateX(-5px);
+            }
+
+            .notification-item.unread {
+                background: #e8f4f8;
+                border-left-color: #e74c3c;
+            }
+
+        .notification-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .notification-message {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .notification-date {
+            color: #999;
+            font-size: 11px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+        }
+
+        .mark-all {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+            .mark-all:hover {
+                background: #1a252f;
+            }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo"><span>🚗</span> GPS Tracking Admin</div>
+        <div class="nav-links">
+            <a href="/Request/Dashboard">Dashboard</a>
+            <a href="/Request/MyRequests">Mes demandes</a>
+            <a href="/Request/Notifications" class="active">Notifications</a>
+            <a href="/Account/Logout">Déconnexion</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h2><i class="fas fa-bell"></i> Notifications</h2>
+        </div>
+
+        @if (notifications != null && notifications.Any())
+        {
+        <div style="text-align: right; margin-bottom: 15px;">
+            <button class="mark-all" onclick="markAllAsRead()">Tout marquer comme lu</button>
+        </div>
+
+        @foreach (var notif in notifications)
+            {
+        <div class="notification-item @(notif.IsRead ? "" : "unread")" onclick="markAsRead(@notif.Id, @(notif.RequestId.HasValue ? notif.RequestId.Value.ToString() : "null"))">
+            <div class="notification-title">
+                @if (notif.Type == "Request") { <i class="fas fa-paper-plane"></i> }
+                        else if (notif.Type == "Approval") { <i class="fas fa-check-circle"></i> }
+                        else if (notif.Type == "Rejection") { <i class="fas fa-times-circle"></i> }
+                        else { <i class="fas fa-info-circle"></i> }
+                @notif.Title
+            </div>
+            <div class="notification-message">@notif.Message</div>
+            <div class="notification-date">@notif.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+        </div>
+            }
+        }
+        else
+        {
+        <div class="empty-state">
+            <i class="fas fa-bell-slash" style="font-size: 48px; color: #ccc;"></i>
+            <p>Aucune notification</p>
+        </div>
+        }
+    </div>
+
+    <script>
+        function markAsRead(id, requestId) {
+            fetch(`/Request/MarkNotificationAsRead?id=${id}`, { method: 'POST' });
+
+            if (requestId) {
+                window.location.href = `/Request/RequestDetails?id=${requestId}`;
+            } else {
+                location.reload();
+            }
+        }
+
+        function markAllAsRead() {
+            fetch(`/Request/MarkAllNotificationsAsRead`, { method: 'POST' })
+                .then(() => location.reload());
+        }
+    </script>
+</body>
+</html>

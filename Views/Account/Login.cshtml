@@ -1,0 +1,185 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Connexion";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connexion - GPS Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            width: 400px;
+            padding: 40px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo i {
+            font-size: 60px;
+            color: #3498db;
+        }
+
+        .logo h2 {
+            color: #2c3e50;
+            margin-top: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .error {
+            background: #fdecea;
+            color: #e74c3c;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e74c3c;
+            text-align: center;
+        }
+
+        .info {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .demo-users {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        .demo-users h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .demo-users p {
+            margin: 5px 0;
+            color: #666;
+        }
+
+        .demo-users span {
+            font-family: monospace;
+            background: #ecf0f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <i class="fas fa-map-marked-alt"></i>
+            <h2>GPS Tracking Admin</h2>
+        </div>
+
+        @if (!string.IsNullOrEmpty(ViewBag.Error))
+        {
+        <div class="error">
+            <i class="fas fa-exclamation-triangle"></i> @ViewBag.Error
+        </div>
+        }
+
+        <form method="post" action="/Account/Login">
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> Nom d'utilisateur</label>
+                <input type="text" name="username" placeholder="Entrez votre nom d'utilisateur" required autofocus />
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Mot de passe</label>
+                <input type="password" name="password" placeholder="Entrez votre mot de passe" required />
+            </div>
+
+            <button type="submit">
+                <i class="fas fa-sign-in-alt"></i> Se connecter
+            </button>
+        </form>
+
+        <div class="demo-users">
+            <h4><i class="fas fa-info-circle"></i> Comptes de démonstration</h4>
+            <p><strong>👑 Admin :</strong> <span>admin</span> / <span>admin123</span></p>
+            <p><strong>👔 Superviseur :</strong> <span>supervisor</span> / <span>super123</span></p>
+            <p><strong>👤 Employé :</strong> <span>employee1</span> / <span>emp123</span></p>
+        </div>
+
+        <div class="info">
+            <i class="fas fa-shield-alt"></i> Application sécurisée
+        </div>
+    </div>
+</body>
+</html>

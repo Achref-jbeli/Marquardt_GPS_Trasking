@@ -1,0 +1,437 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Ajouter un utilisateur";
+    var users = ViewBag.Users as List<GpsAdminServer.Models.ApplicationUser>;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Ajouter utilisateur - GPS Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .navbar {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+            .logo span {
+                color: #3498db;
+            }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            padding: 8px 12px;
+            border-radius: 5px;
+        }
+
+            .nav-links a:hover {
+                background: #34495e;
+            }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+            .card h2 {
+                margin-bottom: 20px;
+                color: #2c3e50;
+                border-bottom: 2px solid #3498db;
+                padding-bottom: 10px;
+            }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: bold;
+                color: #2c3e50;
+            }
+
+            .form-group input, .form-group select {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+
+        .btn-save {
+            width: 100%;
+            padding: 12px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+            .btn-save:hover {
+                background: #219a52;
+            }
+
+        .btn-back {
+            display: inline-block;
+            margin-top: 15px;
+            color: #666;
+            text-decoration: none;
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .alert-error {
+            background: #fdecea;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+
+        /* Styles pour la recherche par lettre */
+        .letter-filter {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .letter-btn {
+            width: 35px;
+            height: 35px;
+            border: none;
+            background: #ecf0f1;
+            color: #2c3e50;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+            .letter-btn:hover {
+                background: #3498db;
+                color: white;
+            }
+
+            .letter-btn.active {
+                background: #3498db;
+                color: white;
+            }
+
+            .letter-btn.all-btn {
+                width: auto;
+                padding: 0 10px;
+            }
+
+        .supervisor-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-top: 5px;
+        }
+
+        .supervisor-option {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+
+            .supervisor-option:hover {
+                background: #e8f4f8;
+            }
+
+            .supervisor-option.selected {
+                background: #d4e6f1;
+                border-left: 3px solid #3498db;
+            }
+
+        .supervisor-name {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .supervisor-dept {
+            font-size: 11px;
+            color: #666;
+            margin-left: 10px;
+        }
+
+        .search-box {
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+            .search-box input {
+                width: 100%;
+                padding: 10px 35px 10px 15px;
+                border: 1px solid #ddd;
+                border-radius: 20px;
+            }
+
+            .search-box i {
+                position: absolute;
+                right: 12px;
+                top: 12px;
+                color: #999;
+            }
+
+        .no-results {
+            padding: 20px;
+            text-align: center;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo"><span>🚗</span> GPS Admin</div>
+        <div class="nav-links">
+            <a href="/Admin/Dashboard">Dashboard</a>
+            <a href="/Admin/Users">Utilisateurs</a>
+            <a href="/Account/Logout">Déconnexion</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2><i class="fas fa-user-plus"></i> Ajouter un utilisateur</h2>
+
+            @if (!string.IsNullOrEmpty(ViewBag.Error))
+            {
+            <div class="alert alert-error">@ViewBag.Error</div>
+            }
+
+            <form method="post" action="/Admin/AddUser" id="addUserForm">
+                <div class="form-group">
+                    <label>Nom complet</label>
+                    <input type="text" name="FullName" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Nom d'utilisateur</label>
+                    <input type="text" name="Username" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="Email" />
+                </div>
+
+                <div class="form-group">
+                    <label>Département</label>
+                    <input type="text" name="Department" placeholder="Ex: Transport, Logistique" />
+                </div>
+
+                <div class="form-group">
+                    <label>Mot de passe</label>
+                    <input type="password" name="Password" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Rôle</label>
+                    <select name="Role" id="RoleSelect">
+                        <option value="User">👤 Utilisateur</option>
+                        <option value="Admin">👑 Administrateur</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="supervisorField">
+                    <label>👔 Responsable (Superviseur)</label>
+
+                    <!-- Filtre par lettre -->
+                    <div class="letter-filter" id="letterFilter">
+                        <button type="button" class="letter-btn all-btn active" data-letter="all">Tous</button>
+                        @for (char c = 'A'; c <= 'Z'; c++)
+                        {
+                        <button type="button" class="letter-btn" data-letter="@c">@c</button>
+                        }
+                    </div>
+
+                    <!-- Boîte de recherche -->
+                    <div class="search-box">
+                        <input type="text" id="searchSupervisor" placeholder="Rechercher par nom..." autocomplete="off">
+                        <i class="fas fa-search"></i>
+                    </div>
+
+                    <!-- Liste des superviseurs -->
+                    <div class="supervisor-list" id="supervisorList">
+                        <div class="supervisor-option" data-id="" data-name="Aucun">
+                            <span class="supervisor-name">-- Aucun responsable --</span>
+                        </div>
+                        @if (users != null)
+                        {
+                            foreach (var u in users)
+                            {
+                        <div class="supervisor-option" data-id="@u.Id" data-name="@u.FullName" data-dept="@u.Department">
+                            <span class="supervisor-name">@u.FullName</span>
+                            <span class="supervisor-dept">(@u.Role - @u.Department)</span>
+                        </div>
+                            }
+                        }
+                    </div>
+                    <input type="hidden" name="supervisorId" id="selectedSupervisorId" value="" />
+
+                    <div class="info-text">
+                        <i class="fas fa-info-circle"></i>
+                        Cliquez sur une lettre pour filtrer, ou tapez le nom pour rechercher.
+                        Sélectionnez la personne qui approuvera les demandes de cet utilisateur.
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-save">Ajouter l'utilisateur</button>
+                <a href="/Admin/Users" class="btn-back">← Retour à la liste</a>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Données des superviseurs
+        var supervisors = [];
+        @if (users != null)
+        {
+            foreach (var u in users)
+            {
+                @:supervisors.push({ id: @u.Id, name: "@u.FullName", dept: "@u.Department", role: "@u.Role" });
+            }
+        }
+
+        var currentLetter = 'all';
+        var currentSearch = '';
+
+        function renderSupervisorList() {
+            var container = document.getElementById('supervisorList');
+            var filtered = supervisors.filter(function(s) {
+                // Filtre par lettre
+                if (currentLetter !== 'all') {
+                    var firstLetter = s.name.charAt(0).toUpperCase();
+                    if (firstLetter !== currentLetter) return false;
+                }
+                // Filtre par recherche
+                if (currentSearch !== '') {
+                    return s.name.toLowerCase().includes(currentSearch.toLowerCase());
+                }
+                return true;
+            });
+
+            var html = '<div class="supervisor-option" data-id="" data-name="Aucun" onclick="selectSupervisor(this)">';
+            html += '<span class="supervisor-name">-- Aucun responsable --</span>';
+            html += '</div>';
+
+            for (var i = 0; i < filtered.length; i++) {
+                var s = filtered[i];
+                html += '<div class="supervisor-option" data-id="' + s.id + '" data-name="' + s.name + '" data-dept="' + s.dept + '" onclick="selectSupervisor(this)">';
+                html += '<span class="supervisor-name">' + s.name + '</span>';
+                html += '<span class="supervisor-dept">(' + s.role + ' - ' + s.dept + ')</span>';
+                html += '</div>';
+            }
+
+            if (filtered.length === 0) {
+                html = '<div class="no-results"><i class="fas fa-user-slash"></i> Aucun superviseur trouvé</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        function selectSupervisor(element) {
+            // Enlever la classe selected de tous
+            document.querySelectorAll('.supervisor-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+
+            // Ajouter la classe selected à l'élément cliqué
+            element.classList.add('selected');
+
+            var id = element.getAttribute('data-id');
+            var name = element.getAttribute('data-name');
+
+            document.getElementById('selectedSupervisorId').value = id;
+
+            // Optionnel: afficher le nom sélectionné
+            console.log('Superviseur sélectionné:', name, 'ID:', id);
+        }
+
+        function filterByLetter(letter) {
+            currentLetter = letter;
+            // Mettre à jour l'état actif des boutons
+            document.querySelectorAll('.letter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            renderSupervisorList();
+        }
+
+        function searchSupervisors() {
+            currentSearch = document.getElementById('searchSupervisor').value;
+            renderSupervisorList();
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            renderSupervisorList();
+
+            // Ajouter les événements aux boutons de lettre
+            document.querySelectorAll('.letter-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    currentLetter = this.getAttribute('data-letter');
+                    document.querySelectorAll('.letter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    renderSupervisorList();
+                });
+            });
+
+            // Ajouter l'événement de recherche
+            document.getElementById('searchSupervisor').addEventListener('input', function() {
+                currentSearch = this.value;
+                renderSupervisorList();
+            });
+        });
+    </script>
+</body>
+</html>

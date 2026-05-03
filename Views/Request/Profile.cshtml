@@ -1,0 +1,400 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Mon profil";
+    var user = ViewBag.User as GpsAdminServer.Models.ApplicationUser;
+    var supervisor = ViewBag.Supervisor as GpsAdminServer.Models.ApplicationUser;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mon profil - GPS Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .navbar {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+            .logo span {
+                color: #3498db;
+            }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+            .nav-links a:hover {
+                background: #34495e;
+            }
+
+            .nav-links a.active {
+                background: #3498db;
+            }
+
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #e8f8f5;
+            color: #27ae60;
+            border: 1px solid #27ae60;
+        }
+
+        .alert-error {
+            background: #fdecea;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+            .card h2 {
+                margin-bottom: 20px;
+                color: #2c3e50;
+                border-bottom: 2px solid #3498db;
+                padding-bottom: 10px;
+            }
+
+        .avatar {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+            .avatar i {
+                font-size: 80px;
+                color: #3498db;
+            }
+
+        .info-row {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            align-items: flex-start;
+        }
+
+        .info-label {
+            width: 150px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .info-value {
+            flex: 1;
+            color: #666;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background: #27ae60;
+            color: white;
+        }
+
+        .status-inactive {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: #ecf0f1;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+            .tab.active {
+                background: #3498db;
+                color: white;
+            }
+
+        .tab-content {
+            display: none;
+        }
+
+            .tab-content.active {
+                display: block;
+            }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+                color: #2c3e50;
+            }
+
+            .form-group input {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                font-size: 14px;
+            }
+
+                .form-group input:focus {
+                    outline: none;
+                    border-color: #3498db;
+                }
+
+        .btn-save {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+            .btn-save:hover {
+                background: #219a52;
+            }
+
+        .btn-back {
+            display: inline-block;
+            margin-top: 10px;
+            color: #666;
+            text-decoration: none;
+        }
+
+        @@media (max-width: 600px) {
+            .info-row {
+                flex-direction: column;
+            }
+
+            .info-label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .nav-links a {
+                margin-left: 10px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo"><span>🚗</span> GPS Tracking Admin</div>
+        <div class="nav-links">
+            <a href="/Request/Dashboard">Dashboard</a>
+            <a href="/Request/MyRequests">Mes demandes</a>
+            <a href="/Request/Notifications">Notifications</a>
+            <a href="/Request/Profile" class="active">Mon profil</a>
+            <a href="/Request/MyStatistics">Mes stats</a>
+            <a href="/Account/Logout">Déconnexion</a>
+        </div>
+    </div>
+
+    <div class="container">
+        @if (TempData["Success"] != null)
+        {
+        <div class="alert alert-success">@TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+        <div class="alert alert-error">@TempData["Error"]</div>
+        }
+
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('profile')">📋 Informations personnelles</div>
+            <div class="tab" onclick="showTab('password')">🔑 Changer le mot de passe</div>
+        </div>
+
+        <!-- Informations personnelles -->
+        <div id="tab-profile" class="tab-content active">
+            <div class="card">
+                <div class="avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">Nom complet</div>
+                    <div class="info-value">@user?.FullName</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Nom d'utilisateur</div>
+                    <div class="info-value">@user?.Username</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">@(string.IsNullOrEmpty(user?.Email) ? "-" : user.Email)</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Rôle</div>
+                    <div class="info-value">
+                        @if (user?.Role == "Admin")
+                        {
+                        <span>👑 Administrateur</span>
+                        }
+                        else
+                        {
+                        <span>👤 Utilisateur</span>
+                        }
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Département</div>
+                    <div class="info-value">@(string.IsNullOrEmpty(user?.Department) ? "-" : user.Department)</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">👔 Votre superviseur</div>
+                    <div class="info-value">
+                        @if (supervisor != null)
+                        {
+                        <strong style="color: #2c3e50;">@supervisor.FullName</strong>
+                        <span style="font-size: 12px; color: #666;"> (@supervisor.Role)</span>
+                        }
+                        else
+                        {
+                        <span style="color: #999;">Aucun superviseur assigné</span>
+                        }
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Statut</div>
+                    <div class="info-value">
+                        @if (user?.IsActive == true)
+                        {
+                        <span class="status-badge status-active">Actif</span>
+                        }
+                        else
+                        {
+                        <span class="status-badge status-inactive">Inactif</span>
+                        }
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Date d'inscription</div>
+                    <div class="info-value">@user?.CreatedAt.ToString("dd/MM/yyyy")</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2><i class="fas fa-edit"></i> Modifier mes informations</h2>
+                <form method="post" action="/Request/UpdateProfile">
+                    <div class="form-group">
+                        <label>Nom complet</label>
+                        <input type="text" name="fullName" value="@user?.FullName" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" value="@user?.Email" />
+                    </div>
+                    <button type="submit" class="btn-save">Mettre à jour le profil</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Changer mot de passe -->
+        <div id="tab-password" class="tab-content">
+            <div class="card">
+                <h2><i class="fas fa-key"></i> Changer le mot de passe</h2>
+                <form method="post" action="/Request/ChangePassword">
+                    <div class="form-group">
+                        <label>Mot de passe actuel</label>
+                        <input type="password" name="currentPassword" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Nouveau mot de passe</label>
+                        <input type="password" name="newPassword" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Confirmer le nouveau mot de passe</label>
+                        <input type="password" name="confirmPassword" required />
+                    </div>
+                    <button type="submit" class="btn-save">Changer le mot de passe</button>
+                </form>
+            </div>
+        </div>
+
+        <a href="/Request/Dashboard" class="btn-back"><i class="fas fa-arrow-left"></i> Retour au Dashboard</a>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Cacher tous les contenus
+            document.getElementById('tab-profile').classList.remove('active');
+            document.getElementById('tab-password').classList.remove('active');
+
+            // Afficher le contenu sélectionné
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+
+            // Mettre à jour l'état actif des onglets
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>

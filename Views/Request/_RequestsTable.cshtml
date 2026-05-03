@@ -1,0 +1,62 @@
+@model IEnumerable<GpsAdminServer.Models.TravelRequest>
+
+    @if (Model != null && Model.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Destination</th>
+                <th>Date</th>
+                <th>Heure arrivée</th>
+                <th>Motif</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var request in Model)
+            {
+            <tr>
+                <td>@request.Id</td>
+                <td>@request.Destination</td>
+                <td>@request.TravelDate.ToString("dd/MM/yyyy")</td>
+                <td>@request.ArrivalTime.ToString("HH:mm")</td>
+                <td>@request.Purpose</td>
+                <td>
+                    @if (request.Status == "Pending")
+                        {
+                    <span class="status-badge status-pending">En attente</span>
+                        }
+                        else if (request.Status == "SupervisorApproved")
+                        {
+                    <span class="status-badge status-approved">Approuvée (Sup.)</span>
+                        }
+                        else if (request.Status == "AdminApproved")
+                        {
+                    <span class="status-badge status-approved">Approuvée (Admin)</span>
+                        }
+                        else if (request.Status == "Completed")
+                        {
+                    <span class="status-badge status-completed">Terminée</span>
+                        }
+                        else if (request.Status == "Rejected")
+                        {
+                    <span class="status-badge status-rejected">Refusée</span>
+                        }
+                </td>
+                <td>
+                    <a href="/Request/RequestDetails?id=@request.Id" class="btn-detail">Détails</a>
+                </td>
+            </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="empty-state">
+        <i class="fas fa-calendar-alt"></i>
+        <p>Aucune demande trouvée</p>
+    </div>
+}
