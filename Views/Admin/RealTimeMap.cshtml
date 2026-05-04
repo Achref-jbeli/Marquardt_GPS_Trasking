@@ -1,0 +1,444 @@
+﻿@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Carte temps réel";
+}
+
+<div class="page-header">
+    <h2><i class="fas fa-satellite-dish"></i> Suivi GPS en temps réel</h2>
+    <p>Visualisez la position de tous les chauffeurs en direct</p>
+</div>
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+        <div>
+            <span class="badge status-badge">
+                <i class="fas fa-circle" style="color: #27ae60;"></i> En ligne: <span id="onlineCount">0</span>
+            </span>
+            <span class="badge status-badge">
+                <i class="fas fa-circle" style="color: #e74c3c;"></i> Hors ligne: <span id="offlineCount">0</span>
+            </span>
+            <span class="badge status-badge">
+                <i class="fas fa-car"></i> Total: <span id="totalCount">0</span>
+            </span>
+        </div>
+        <div>
+            <span class="badge status-badge">
+                <i class="fas fa-clock"></i> Dernière mise à jour: <span id="lastUpdate">--:--:--</span>
+            </span>
+            <button class="btn btn-primary" onclick="refreshPositions()">
+                <i class="fas fa-sync-alt"></i> Actualiser
+            </button>
+            <button class="btn btn-secondary" onclick="centerOnMap()">
+                <i class="fas fa-crosshairs"></i> Centrer
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+        <div style="flex: 2; min-width: 300px;">
+            <div id="realTimeMap" style="height: 550px; width: 100%; border-radius: 12px;"></div>
+        </div>
+        <div style="flex: 1; min-width: 280px;">
+            <div class="drivers-list">
+                <h3><i class="fas fa-users"></i> Chauffeurs</h3>
+                <div id="driversList" style="max-height: 500px; overflow-y: auto;">
+                    <p style="text-align: center; color: #999; padding: 20px;">Chargement...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        margin-right: 10px;
+        font-size: 13px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .drivers-list {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+        .drivers-list h3 {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #00b4d8;
+            font-size: 18px;
+        }
+
+    .driver-item {
+        padding: 12px;
+        margin-bottom: 10px;
+        background: #f8fafc;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.2s, background 0.2s;
+        border-left: 4px solid;
+    }
+
+        .driver-item:hover {
+            transform: translateX(-3px);
+            background: #e8f4f8;
+        }
+
+    .driver-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+    }
+
+    .driver-name {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .status-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+
+        .status-dot.online {
+            background-color: #27ae60;
+            box-shadow: 0 0 5px #27ae60;
+        }
+
+        .status-dot.offline {
+            background-color: #e74c3c;
+        }
+
+    .driver-id {
+        font-size: 11px;
+        color: #7f8c8d;
+        font-family: monospace;
+    }
+
+    .driver-info {
+        display: flex;
+        gap: 15px;
+        font-size: 12px;
+        color: #555;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+    }
+
+        .driver-info i {
+            width: 14px;
+            color: #00b4d8;
+        }
+
+    .driver-coords {
+        font-size: 10px;
+        color: #999;
+        font-family: monospace;
+        word-break: break-all;
+    }
+
+    .driver-speed {
+        font-weight: bold;
+    }
+
+        .driver-speed.slow {
+            color: #27ae60;
+        }
+
+        .driver-speed.normal {
+            color: #f39c12;
+        }
+
+        .driver-speed.fast {
+            color: #e74c3c;
+        }
+
+    .btn-secondary {
+        background: #7f8c8d;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-left: 8px;
+    }
+
+        .btn-secondary:hover {
+            background: #6c7a7a;
+        }
+
+    .custom-marker {
+        background: transparent;
+        border: none;
+    }
+
+    .legend-info {
+        position: absolute;
+        bottom: 20px;
+        left: 10px;
+        z-index: 1000;
+        background: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 11px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        pointer-events: none;
+    }
+
+    @@keyframes pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        100% {
+            transform: scale(1.3);
+            opacity: 0;
+        }
+    }
+
+    .pulse {
+        animation: pulse 1.5s infinite;
+    }
+</style>
+
+<script>
+    var map = L.map('realTimeMap').setView([36.8065, 10.1815], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    var markers = {};
+    var driversData = {};
+    var updateInterval = null;
+    var colorPalette = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22', '#34495e', '#16a085', '#27ae60', '#2980b9', '#8e44ad'];
+    var driverColors = {};
+
+    // Ajouter une légende
+    var legend = L.control({ position: 'bottomleft' });
+    legend.onAdd = function () {
+        var div = L.DomUtil.create('div', 'legend-info');
+        div.innerHTML = '<strong>🔄 Mise à jour:</strong> toutes les 5 secondes';
+        return div;
+    };
+    legend.addTo(map);
+
+    function centerOnMap() {
+        map.setView([36.8065, 10.1815], 12);
+    }
+
+    async function refreshPositions() {
+        try {
+            var timestamp = new Date().getTime();
+            var response = await fetch('/Home/GetPositions?_=' + timestamp);
+            var positions = await response.json();
+            document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString('fr-FR');
+            updateMap(positions);
+            updateDriversList(positions);
+        } catch (e) {
+            console.error('Erreur refreshPositions:', e);
+        }
+    }
+
+    function getSpeedClass(speed) {
+        if (speed < 30) return 'slow';
+        if (speed < 80) return 'normal';
+        return 'fast';
+    }
+
+    function updateMap(positions) {
+        var onlineCount = 0;
+        var offlineCount = 0;
+        var totalDrivers = Object.keys(positions).length;
+
+        for (var id in positions) {
+            var data = positions[id];
+
+            // Gérer les deux cas: tableau ou valeur directe
+            var lat = 0, lng = 0, speed = 0, nom = id, lastUpdate = "N/A", mapsLink = "";
+
+            if (Array.isArray(data.lat)) {
+                lat = data.lat.length > 0 ? parseFloat(data.lat[0]) : 0;
+                lng = data.lng.length > 0 ? parseFloat(data.lng[0]) : 0;
+                speed = data.speed_kmh.length > 0 ? parseFloat(data.speed_kmh[0]) : 0;
+                nom = data.nom.length > 0 ? data.nom[0] : id;
+                lastUpdate = data.last_update.length > 0 ? data.last_update[0] : "N/A";
+                mapsLink = data.maps_link.length > 0 ? data.maps_link[0] : "";
+            } else {
+                lat = parseFloat(data.lat) || 0;
+                lng = parseFloat(data.lng) || 0;
+                speed = parseFloat(data.speed_kmh) || 0;
+                nom = data.nom || id;
+                lastUpdate = data.last_update || "N/A";
+                mapsLink = data.maps_link || "";
+            }
+
+            var isOnline = (lat !== 0 && lng !== 0);
+            if (isOnline) onlineCount++; else offlineCount++;
+
+            if (!driverColors[id]) {
+                driverColors[id] = colorPalette[Object.keys(driverColors).length % colorPalette.length];
+            }
+            var color = driverColors[id];
+
+            if (isOnline) {
+                var speedClass = getSpeedClass(speed);
+                var customIcon = L.divIcon({
+                    html: `<div style="background: ${color}; color: white; padding: 5px 12px; border-radius: 25px; font-size: 12px; white-space: nowrap; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                            <i class="fas fa-car"></i> ${nom} <span style="background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 12px;">${speed.toFixed(0)} km/h</span>
+                           </div>`,
+                    iconSize: [160, 35],
+                    popupAnchor: [0, -18],
+                    className: 'custom-marker'
+                });
+
+                if (markers[id]) {
+                    markers[id].setLatLng([lat, lng]);
+                    markers[id].setIcon(customIcon);
+                    markers[id].getPopup().setContent(`
+                        <div style="min-width: 220px;">
+                            <b><i class="fas fa-user"></i> ${nom}</b><br/>
+                            <hr style="margin: 5px 0;"/>
+                            <b><i class="fas fa-tachometer-alt"></i> Vitesse:</b>
+                            <span style="color: ${speedClass === 'fast' ? '#e74c3c' : (speedClass === 'normal' ? '#f39c12' : '#27ae60')}; font-weight: bold;">
+                                ${speed.toFixed(1)} km/h
+                            </span><br/>
+                            <b><i class="fas fa-map-marker-alt"></i> Position:</b><br/>
+                            &nbsp;&nbsp;Lat: ${lat.toFixed(6)}<br/>
+                            &nbsp;&nbsp;Lng: ${lng.toFixed(6)}<br/>
+                            <b><i class="fas fa-clock"></i> Dernière MAJ:</b> ${lastUpdate}<br/>
+                            <hr style="margin: 5px 0;"/>
+                            <a href="${mapsLink}" target="_blank" style="color: #00b4d8; text-decoration: none;">
+                                <i class="fas fa-external-link-alt"></i> Voir sur Google Maps
+                            </a>
+                        </div>
+                    `);
+                } else {
+                    markers[id] = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+                    markers[id].bindPopup(`
+                        <div style="min-width: 220px;">
+                            <b><i class="fas fa-user"></i> ${nom}</b><br/>
+                            <hr style="margin: 5px 0;"/>
+                            <b><i class="fas fa-tachometer-alt"></i> Vitesse:</b>
+                            <span style="color: ${speedClass === 'fast' ? '#e74c3c' : (speedClass === 'normal' ? '#f39c12' : '#27ae60')}; font-weight: bold;">
+                                ${speed.toFixed(1)} km/h
+                            </span><br/>
+                            <b><i class="fas fa-map-marker-alt"></i> Position:</b><br/>
+                            &nbsp;&nbsp;Lat: ${lat.toFixed(6)}<br/>
+                            &nbsp;&nbsp;Lng: ${lng.toFixed(6)}<br/>
+                            <b><i class="fas fa-clock"></i> Dernière MAJ:</b> ${lastUpdate}<br/>
+                            <hr style="margin: 5px 0;"/>
+                            <a href="${mapsLink}" target="_blank" style="color: #00b4d8; text-decoration: none;">
+                                <i class="fas fa-external-link-alt"></i> Voir sur Google Maps
+                            </a>
+                        </div>
+                    `);
+                }
+            } else {
+                if (markers[id]) {
+                    map.removeLayer(markers[id]);
+                    delete markers[id];
+                }
+            }
+        }
+
+        document.getElementById('onlineCount').innerText = onlineCount;
+        document.getElementById('offlineCount').innerText = offlineCount;
+        document.getElementById('totalCount').innerText = totalDrivers;
+    }
+
+    function updateDriversList(positions) {
+        var container = document.getElementById('driversList');
+        if (!positions || Object.keys(positions).length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Aucun chauffeur actif</p>';
+            return;
+        }
+
+        var html = '';
+        for (var id in positions) {
+            var data = positions[id];
+
+            var lat = 0, lng = 0, speed = 0, nom = id, lastUpdate = "N/A";
+            if (Array.isArray(data.lat)) {
+                lat = data.lat.length > 0 ? parseFloat(data.lat[0]) : 0;
+                lng = data.lng.length > 0 ? parseFloat(data.lng[0]) : 0;
+                speed = data.speed_kmh.length > 0 ? parseFloat(data.speed_kmh[0]) : 0;
+                nom = data.nom.length > 0 ? data.nom[0] : id;
+                lastUpdate = data.last_update.length > 0 ? data.last_update[0] : "N/A";
+            } else {
+                lat = parseFloat(data.lat) || 0;
+                lng = parseFloat(data.lng) || 0;
+                speed = parseFloat(data.speed_kmh) || 0;
+                nom = data.nom || id;
+                lastUpdate = data.last_update || "N/A";
+            }
+
+            var isOnline = (lat !== 0 && lng !== 0);
+            var color = driverColors[id] || '#7f8c8d';
+            var speedClass = getSpeedClass(speed);
+
+            html += `
+                <div class="driver-item" onclick="focusOnDriver(${lat}, ${lng})" style="border-left-color: ${color};">
+                    <div class="driver-header">
+                        <div class="driver-name">
+                            <span class="status-dot ${isOnline ? 'online' : 'offline'}"></span>
+                            <strong>${nom}</strong>
+                        </div>
+                        <div class="driver-id">${id}</div>
+                    </div>
+                    <div class="driver-info">
+                        <div><i class="fas fa-tachometer-alt"></i> <span class="driver-speed ${speedClass}">${speed.toFixed(1)} km/h</span></div>
+                        <div><i class="fas fa-clock"></i> ${lastUpdate}</div>
+                    </div>
+                    <div class="driver-coords">
+                        📍 ${lat.toFixed(5)}, ${lng.toFixed(5)}
+                    </div>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+    }
+
+    function focusOnDriver(lat, lng) {
+        if (lat && lng && lat !== 0 && lng !== 0) {
+            map.setView([lat, lng], 16);
+        }
+    }
+
+    function startAutoRefresh() {
+        refreshPositions();
+        if (updateInterval) clearInterval(updateInterval);
+        updateInterval = setInterval(refreshPositions, 5000);
+    }
+
+    function stopAutoRefresh() {
+        if (updateInterval) {
+            clearInterval(updateInterval);
+            updateInterval = null;
+        }
+    }
+
+    startAutoRefresh();
+
+    window.addEventListener('beforeunload', function () {
+        stopAutoRefresh();
+    });
+</script>

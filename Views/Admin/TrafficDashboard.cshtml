@@ -1,685 +1,403 @@
 ﻿@{
-    Layout = null;
-    ViewData["Title"] = "Traffic Dashboard";
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Trafic";
 }
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Trafic Dashboard - GPS Admin</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/2.0.0/Control.FullScreen.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/2.0.0/Control.FullScreen.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<div class="page-header">
+    <h2><i class="fas fa-map-marked-alt"></i> Trafic des véhicules</h2>
+    <p>Visualisez les trajets et déplacements de vos chauffeurs en temps réel</p>
+</div>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
-        }
-
-        .dashboard-container {
-            display: flex;
-            height: 100vh;
-        }
-
-        .sidebar {
-            width: 380px;
-            background: white;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            z-index: 10;
-        }
-
-        .sidebar-header {
-            background: #2c3e50;
-            color: white;
-            padding: 20px;
-        }
-
-            .sidebar-header h2 {
-                font-size: 18px;
-                margin-bottom: 5px;
-            }
-
-            .sidebar-header p {
-                font-size: 12px;
-                opacity: 0.8;
-            }
-
-        .date-picker-section {
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-        }
-
-            .date-picker-section label {
-                display: block;
-                margin-bottom: 8px;
-                font-weight: bold;
-                color: #2c3e50;
-            }
-
-        .date-input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .btn-load {
-            width: 100%;
-            margin-top: 10px;
-            padding: 10px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-            .btn-load:hover {
-                background: #2980b9;
-            }
-
-        .filter-section {
-            padding: 15px 20px;
-            border-bottom: 1px solid #eee;
-            background: #f8f9fa;
-        }
-
-            .filter-section h4 {
-                margin-bottom: 10px;
-                color: #2c3e50;
-                font-size: 14px;
-            }
-
-        .chauffeur-filter {
-            display: flex;
-            align-items: center;
-            padding: 8px;
-            margin: 5px 0;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-            .chauffeur-filter:hover {
-                background: #e9ecef;
-            }
-
-            .chauffeur-filter.selected {
-                background: #d4e6f1;
-                border-left: 3px solid;
-            }
-
-        .chauffeur-check {
-            margin-right: 10px;
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-
-        .chauffeur-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
-            margin-right: 10px;
-        }
-
-        .chauffeur-name {
-            flex: 1;
-            font-size: 13px;
-        }
-
-        .chauffeur-stats {
-            font-size: 11px;
-            color: #666;
-        }
-
-        .filter-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .btn-small {
-            flex: 1;
-            padding: 6px;
-            background: #ecf0f1;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-            .btn-small:hover {
-                background: #bdc3c7;
-            }
-
-        .summary-stats {
-            padding: 20px;
-            background: #ecf0f1;
-            margin: 10px;
-            border-radius: 10px;
-        }
-
-        .stat-card {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #ddd;
-        }
-
-            .stat-card:last-child {
-                border-bottom: none;
-            }
-
-        .stat-label {
-            font-weight: bold;
-            color: #555;
-        }
-
-        .stat-value {
-            font-size: 16px;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-
-        .travels-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-        }
-
-        .travel-item {
-            background: #f8f9fa;
-            margin-bottom: 8px;
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-left: 4px solid;
-        }
-
-            .travel-item:hover {
-                background: #e9ecef;
-                transform: translateX(-3px);
-            }
-
-            .travel-item.active {
-                background: #d4e6f1;
-            }
-
-        .travel-name {
-            font-weight: bold;
-            font-size: 13px;
-        }
-
-        .travel-detail {
-            font-size: 11px;
-            color: #666;
-            margin-top: 3px;
-        }
-
-        .travel-distance {
-            font-weight: bold;
-        }
-
-        .map-container {
-            flex: 1;
-            position: relative;
-        }
-
-        #map {
-            height: 100%;
-            width: 100%;
-        }
-
-        .loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            z-index: 1000;
-        }
-
-        .legend {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 1000;
-            font-size: 12px;
-            max-width: 200px;
-        }
-
-            .legend h4 {
-                margin-bottom: 8px;
-                font-size: 12px;
-            }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 5px;
-        }
-
-        .legend-color {
-            width: 20px;
-            height: 4px;
-            margin-right: 8px;
-            border-radius: 2px;
-        }
-
-        .no-data {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-    </style>
-</head>
-<body>
-    <div class="dashboard-container">
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <h2>📊 Analyse du Trafic</h2>
-                <p>Visualisez les trajets par jour</p>
-            </div>
-
-            <div class="date-picker-section">
-                <label>📅 Sélectionner une date</label>
-                <input type="date" id="datePicker" class="date-input" />
-                <button class="btn-load" onclick="loadTrafficData()">📊 Charger les données</button>
-            </div>
-
-            <div class="filter-section">
-                <h4>🎨 Filtrer par chauffeur</h4>
-                <div id="chauffeurFilters"></div>
-                <div class="filter-actions">
-                    <button class="btn-small" onclick="selectAllChauffeurs()">✅ Tous</button>
-                    <button class="btn-small" onclick="selectNoneChauffeurs()">❌ Aucun</button>
-                </div>
-            </div>
-
-            <div class="summary-stats" id="summaryStats">
-                <div class="stat-card">
-                    <span class="stat-label">📅 Date</span>
-                    <span class="stat-value" id="statDate">--</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-label">🚗 Trajets</span>
-                    <span class="stat-value" id="statTravels">0</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-label">👨‍✈️ Chauffeurs actifs</span>
-                    <span class="stat-value" id="statChauffeurs">0</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-label">📏 Distance totale</span>
-                    <span class="stat-value" id="statDistance">0 km</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-label">⚡ Vitesse moyenne</span>
-                    <span class="stat-value" id="statSpeed">0 km/h</span>
-                </div>
-            </div>
-
-            <div class="travels-list" id="travelsList">
-                <div class="no-data">Sélectionnez une date</div>
-            </div>
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+        <div>
+            <label style="font-weight: 600;">📅 Sélectionner une date :</label>
+            <input type="date" id="datePicker" style="margin-left: 10px; padding: 8px; border-radius: 8px; border: 1px solid #ddd;" />
         </div>
-
-        <div class="map-container">
-            <div id="map"></div>
-            <div class="legend" id="legend" style="display: none;">
-                <h4>🎨 Légende</h4>
-                <div id="legendItems"></div>
-            </div>
+        <div>
+            <button id="loadDataBtn" class="btn btn-primary" onclick="loadTrafficData()">
+                <i class="fas fa-search"></i> Charger les données
+            </button>
+            <button class="btn btn-secondary" onclick="selectAllChauffeurs()" style="background:#7f8c8d;">
+                <i class="fas fa-check-double"></i> Tous
+            </button>
+            <button class="btn btn-secondary" onclick="selectNoneChauffeurs()" style="background:#95a5a6;">
+                <i class="fas fa-times"></i> Aucun
+            </button>
         </div>
     </div>
+</div>
 
-    <script>
-        var map = L.map('map').setView([36.8065, 10.1815], 12);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-        L.control.fullscreen().addTo(map);
+<div class="card">
+    <h3><i class="fas fa-users"></i> Filtrage par chauffeur</h3>
+    <div id="chauffeurFilters" style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px;"></div>
+</div>
 
-        var currentPolylines = [];
-        var currentMarkers = [];
-        var currentData = null;
-        var selectedChauffeurs = new Set();
-        var chauffeurColors = {};
+<div id="map" style="height: 500px; width: 100%; border-radius: 12px; margin-bottom: 20px;"></div>
 
-        // Palette de couleurs
-        var colorPalette = [
-            '#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6',
-            '#1abc9c', '#e67e22', '#34495e', '#16a085', '#27ae60',
-            '#2980b9', '#8e44ad', '#2c3e50', '#d35400', '#c0392b',
-            '#7f8c8d', '#f1c40f', '#e84393'
-        ];
+<div class="card" id="trafficStats" style="display: none;">
+    <h3><i class="fas fa-chart-bar"></i> Résumé des trajets</h3>
+    <div id="statsContent"></div>
+</div>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-        flatpickr("#datePicker", {
-            dateFormat: "Y-m-d",
-            locale: "fr",
-            defaultDate: new Date(),
-            maxDate: new Date()
+<script>
+    var map = L.map('map').setView([36.8065, 10.1815], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    var allTravels = [];
+    var chauffeurColors = {};
+    var polylines = [];
+    var markers = [];
+    var selectedChauffeurs = new Set();
+
+    var colorPalette = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22', '#34495e', '#16a085', '#27ae60', '#2980b9', '#8e44ad'];
+
+    async function loadTrafficData() {
+        var date = document.getElementById('datePicker').value;
+        if (!date) {
+            alert('Veuillez sélectionner une date');
+            return;
+        }
+
+        clearMap();
+
+        try {
+            var response = await fetch(`/Admin/GetTrafficData?date=${date}`);
+            allTravels = await response.json();
+
+            initChauffeurColors();
+            buildFilters();
+            displayStatistics(allTravels);
+            updateMap();
+        } catch (e) {
+            console.error('Erreur:', e);
+            alert('Erreur lors du chargement des données');
+        }
+    }
+
+    function initChauffeurColors() {
+        if (allTravels.travels && allTravels.travels.length > 0) {
+            allTravels.travels.forEach((travel, idx) => {
+                if (!chauffeurColors[travel.chauffeurId]) {
+                    chauffeurColors[travel.chauffeurId] = colorPalette[idx % colorPalette.length];
+                }
+                if (selectedChauffeurs.size === 0) {
+                    selectedChauffeurs.add(travel.chauffeurId);
+                }
+            });
+        }
+    }
+
+    function buildFilters() {
+        var container = document.getElementById('chauffeurFilters');
+        if (!allTravels.travels || allTravels.travels.length === 0) {
+            container.innerHTML = '<p>Aucun chauffeur trouvé pour cette date</p>';
+            return;
+        }
+
+        var html = '';
+        allTravels.travels.forEach(travel => {
+            var color = chauffeurColors[travel.chauffeurId];
+            var isChecked = selectedChauffeurs.has(travel.chauffeurId);
+            html += `
+                <div class="filter-item" onclick="toggleChauffeur('${travel.chauffeurId}')" style="cursor: pointer;">
+                    <input type="checkbox" id="chk_${travel.chauffeurId}" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleChauffeur('${travel.chauffeurId}')" />
+                    <span style="display: inline-block; width: 16px; height: 16px; background: ${color}; border-radius: 4px; margin: 0 5px;"></span>
+                    <label for="chk_${travel.chauffeurId}" style="cursor: pointer;">${travel.nom}</label>
+                    <span style="font-size: 11px; color: #666;"> (${travel.distanceKm} km)</span>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function toggleChauffeur(chauffeurId) {
+        if (selectedChauffeurs.has(chauffeurId)) {
+            selectedChauffeurs.delete(chauffeurId);
+        } else {
+            selectedChauffeurs.add(chauffeurId);
+        }
+        document.getElementById(`chk_${chauffeurId}`).checked = selectedChauffeurs.has(chauffeurId);
+        updateMap();
+        displayStatistics(allTravels);
+    }
+
+    function selectAllChauffeurs() {
+        if (allTravels.travels) {
+            allTravels.travels.forEach(travel => selectedChauffeurs.add(travel.chauffeurId));
+            buildFilters();
+            updateMap();
+            displayStatistics(allTravels);
+        }
+    }
+
+    function selectNoneChauffeurs() {
+        selectedChauffeurs.clear();
+        buildFilters();
+        updateMap();
+        displayStatistics(allTravels);
+    }
+
+    function clearMap() {
+        polylines.forEach(line => map.removeLayer(line));
+        markers.forEach(marker => map.removeLayer(marker));
+        polylines = [];
+        markers = [];
+    }
+
+    function updateMap() {
+        clearMap();
+
+        if (!allTravels.travels || allTravels.travels.length === 0) return;
+
+        var filteredTravels = allTravels.travels.filter(t => selectedChauffeurs.has(t.chauffeurId));
+        var bounds = L.latLngBounds();
+
+        filteredTravels.forEach(travel => {
+            var color = chauffeurColors[travel.chauffeurId];
+
+            if (travel.trajectory && travel.trajectory.length >= 2) {
+                var points = travel.trajectory.map(p => [p.latitude, p.longitude]);
+
+                var polyline = L.polyline(points, {
+                    color: color,
+                    weight: 4,
+                    opacity: 0.8
+                }).addTo(map);
+
+                polyline.bindPopup(`
+                    <b>${travel.nom}</b><br/>
+                    <span style="display:inline-block; width:12px; height:12px; background:${color}; border-radius:2px;"></span>
+                    <b>Couleur:</b> ${color}<br/>
+                    📏 Distance: ${travel.distanceKm} km<br/>
+                    ⚡ Vitesse: ${travel.avgSpeed} km/h<br/>
+                    🏁 Max: ${travel.maxSpeed} km/h
+                `);
+
+                polylines.push(polyline);
+
+                var startIcon = L.divIcon({
+                    html: `🚩 <span style="background:${color}; padding:2px 5px; border-radius:10px; font-size:10px;">${travel.nom}</span>`,
+                    iconSize: [80, 25],
+                    className: 'marker-icon'
+                });
+
+                var startMarker = L.marker([travel.trajectory[0].latitude, travel.trajectory[0].longitude], { icon: startIcon }).addTo(map);
+                startMarker.bindPopup(`🚩 Début: ${formatTime(travel.startTime)}<br/>🚗 ${travel.nom}`);
+                markers.push(startMarker);
+
+                var endIcon = L.divIcon({
+                    html: `🏁 <span style="background:${color}; padding:2px 5px; border-radius:10px; font-size:10px;">${travel.nom}</span>`,
+                    iconSize: [80, 25],
+                    className: 'marker-icon'
+                });
+
+                var endMarker = L.marker([travel.trajectory[travel.trajectory.length - 1].latitude, travel.trajectory[travel.trajectory.length - 1].longitude], { icon: endIcon }).addTo(map);
+                endMarker.bindPopup(`🏁 Arrivée: ${formatTime(travel.endTime)}<br/>🚗 ${travel.nom}`);
+                markers.push(endMarker);
+
+                points.forEach(p => bounds.extend(p));
+            }
         });
 
-        async function loadTrafficData() {
-            var date = document.getElementById("datePicker").value;
-            if (!date) return;
-
-            showLoading();
-
-            try {
-                var response = await fetch(`/Admin/GetTrafficData?date=${date}`);
-                currentData = await response.json();
-                console.log("Données reçues:", currentData);
-
-                // Initialiser les couleurs pour chaque chauffeur
-                if (currentData.travels) {
-                    currentData.travels.forEach((travel, idx) => {
-                        if (!chauffeurColors[travel.chauffeurId]) {
-                            chauffeurColors[travel.chauffeurId] = colorPalette[idx % colorPalette.length];
-                        }
-                    });
-                }
-
-                // Initialiser la sélection (tous les chauffeurs par défaut)
-                if (selectedChauffeurs.size === 0 && currentData.travels) {
-                    currentData.travels.forEach(travel => selectedChauffeurs.add(travel.chauffeurId));
-                }
-
-                updateFilters();
-                updateSummary(currentData);
-                updateTravelsList(currentData);
-                updateMap();
-            } catch (e) {
-                console.error("Erreur:", e);
-                alert("Erreur lors du chargement des données");
-            }
-
-            hideLoading();
+        if (filteredTravels.length > 0 && bounds.isValid()) {
+            map.fitBounds(bounds, { padding: [30, 30] });
         }
 
-        function updateFilters() {
-            var container = document.getElementById("chauffeurFilters");
-            if (!currentData || !currentData.travels || currentData.travels.length === 0) {
-                container.innerHTML = '<div style="color:#999; text-align:center;">Aucun chauffeur</div>';
-                return;
-            }
+        updateLegend(filteredTravels);
+    }
 
-            var html = "";
-            currentData.travels.forEach(travel => {
-                var isChecked = selectedChauffeurs.has(travel.chauffeurId);
+    function updateLegend(filteredTravels) {
+        var legendDiv = document.getElementById('legend');
+        if (!legendDiv) {
+            var legend = L.control({ position: 'bottomright' });
+            legend.onAdd = function () {
+                var div = L.DomUtil.create('div', 'info legend');
+                div.id = 'legend';
+                div.style.background = 'white';
+                div.style.padding = '10px';
+                div.style.borderRadius = '8px';
+                div.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+                div.style.fontSize = '12px';
+                div.style.maxWidth = '200px';
+                return div;
+            };
+            legend.addTo(map);
+        }
+
+        var legendContainer = document.getElementById('legend');
+        if (legendContainer && filteredTravels.length > 0) {
+            var html = '<h4 style="margin:0 0 8px 0;">🎨 Légende</h4>';
+            filteredTravels.forEach(travel => {
                 var color = chauffeurColors[travel.chauffeurId];
-                html += `
-                        <div class="chauffeur-filter ${isChecked ? 'selected' : ''}"
-                             onclick="toggleChauffeur('${travel.chauffeurId}')"
-                             style="border-left-color: ${color};">
-                            <div class="chauffeur-color" style="background: ${color};"></div>
-                            <div class="chauffeur-name">
-                                <strong>${travel.nom}</strong><br/>
-                                <span class="chauffeur-stats">${travel.distanceKm} km | ${travel.avgSpeed} km/h</span>
-                            </div>
-                            <input type="checkbox" class="chauffeur-check" ${isChecked ? 'checked' : ''}
-                                   onclick="event.stopPropagation(); toggleChauffeur('${travel.chauffeurId}')">
-                        </div>
-                    `;
+                html += `<div style="display:flex; align-items:center; margin-bottom:5px;">
+                            <span style="display:inline-block; width:20px; height:4px; background:${color}; margin-right:8px; border-radius:2px;"></span>
+                            <span>${travel.nom}</span>
+                        </div>`;
             });
-            container.innerHTML = html;
+            legendContainer.innerHTML = html;
         }
+    }
 
-        function toggleChauffeur(chauffeurId) {
-            if (selectedChauffeurs.has(chauffeurId)) {
-                selectedChauffeurs.delete(chauffeurId);
-            } else {
-                selectedChauffeurs.add(chauffeurId);
-            }
-            updateFilters();
-            updateTravelsList(currentData);
-            updateMap();
-        }
+    function displayStatistics(data) {
+        var statsDiv = document.getElementById('trafficStats');
+        var statsContent = document.getElementById('statsContent');
 
-        function selectAllChauffeurs() {
-            if (currentData && currentData.travels) {
-                currentData.travels.forEach(travel => selectedChauffeurs.add(travel.chauffeurId));
-                updateFilters();
-                updateTravelsList(currentData);
-                updateMap();
-            }
-        }
-
-        function selectNoneChauffeurs() {
-            selectedChauffeurs.clear();
-            updateFilters();
-            updateTravelsList(currentData);
-            updateMap();
-        }
-
-        function updateSummary(data) {
+        if (data && data.travels && data.travels.length > 0) {
             var filteredTravels = data.travels.filter(t => selectedChauffeurs.has(t.chauffeurId));
             var totalDistance = filteredTravels.reduce((sum, t) => sum + t.distanceKm, 0);
-            var avgSpeed = filteredTravels.length > 0
-                ? filteredTravels.reduce((sum, t) => sum + t.avgSpeed, 0) / filteredTravels.length
-                : 0;
+            var avgSpeed = filteredTravels.length > 0 ? filteredTravels.reduce((sum, t) => sum + t.avgSpeed, 0) / filteredTravels.length : 0;
 
-            document.getElementById("statDate").innerText = formatDate(data.date);
-            document.getElementById("statTravels").innerText = filteredTravels.length;
-            document.getElementById("statChauffeurs").innerText = filteredTravels.length;
-            document.getElementById("statDistance").innerText = totalDistance.toFixed(2) + " km";
-            document.getElementById("statSpeed").innerText = avgSpeed.toFixed(1) + " km/h";
-        }
-
-        function updateTravelsList(data) {
-            var container = document.getElementById("travelsList");
-            var filteredTravels = data.travels.filter(t => selectedChauffeurs.has(t.chauffeurId));
-
-            if (filteredTravels.length === 0) {
-                container.innerHTML = '<div class="no-data">📭 Aucun trajet sélectionné</div>';
-                return;
-            }
-
-            var html = "";
-            filteredTravels.forEach((travel, idx) => {
-                var duration = formatDuration(travel.totalTime);
-                var color = chauffeurColors[travel.chauffeurId];
-                html += `
-                        <div class="travel-item" onclick="selectTravel('${travel.chauffeurId}')"
-                             style="border-left-color: ${color};">
-                            <div class="travel-name">
-                                <span style="display:inline-block; width:12px; height:12px; background:${color}; border-radius:2px; margin-right:8px;"></span>
-                                🚗 ${travel.nom}
-                            </div>
-                            <div class="travel-detail">
-                                📍 ${travel.totalPoints} points | 🕐 ${duration}
-                            </div>
-                            <div class="travel-detail">
-                                <span class="travel-distance">📏 ${travel.distanceKm} km</span> |
-                                ⚡ ${travel.avgSpeed} km/h | 🏁 ${travel.maxSpeed} km/h max
-                            </div>
-                            <div class="travel-detail">
-                                🕐 ${formatTime(travel.startTime)} → ${formatTime(travel.endTime)}
-                            </div>
+            statsDiv.style.display = 'block';
+            statsContent.innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-route"></i></div>
+                        <div class="stat-info">
+                            <h3>${filteredTravels.length}</h3>
+                            <p>Trajets affichés</p>
                         </div>
-                    `;
-            });
-            container.innerHTML = html;
-        }
-
-        function updateMap() {
-            // Nettoyer la carte
-            currentPolylines.forEach(line => map.removeLayer(line));
-            currentMarkers.forEach(marker => map.removeLayer(marker));
-            currentPolylines = [];
-            currentMarkers = [];
-
-            if (!currentData || !currentData.travels) return;
-
-            var filteredTravels = currentData.travels.filter(t => selectedChauffeurs.has(t.chauffeurId));
-
-            if (filteredTravels.length === 0) return;
-
-            var bounds = L.latLngBounds();
-
-            // Mettre à jour la légende
-            updateLegend(filteredTravels);
-
-            filteredTravels.forEach(travel => {
-                var color = chauffeurColors[travel.chauffeurId];
-
-                if (travel.trajectory && travel.trajectory.length >= 2) {
-                    var points = travel.trajectory.map(p => [p.latitude, p.longitude]);
-
-                    var polyline = L.polyline(points, {
-                        color: color,
-                        weight: 4,
-                        opacity: 0.8
-                    }).addTo(map);
-
-                    polyline.bindPopup(`
-                            <b>🚗 ${travel.nom}</b><br/>
-                            <span style="display:inline-block; width:12px; height:12px; background:${color}; border-radius:2px;"></span>
-                            <b>Couleur:</b> ${color}<br/>
-                            📏 Distance: ${travel.distanceKm} km<br/>
-                            ⚡ Vitesse max: ${travel.maxSpeed} km/h<br/>
-                            🕐 ${formatTime(travel.startTime)} → ${formatTime(travel.endTime)}
-                        `);
-
-                    currentPolylines.push(polyline);
-
-                    // Marqueur de début et fin
-                    var startIcon = L.divIcon({
-                        html: `🚩 <span style="background:${color}; padding:2px 5px; border-radius:10px; font-size:10px;">${travel.nom}</span>`,
-                        iconSize: [60, 25],
-                        className: 'marker-icon'
-                    });
-
-                    var startMarker = L.marker([travel.trajectory[0].latitude, travel.trajectory[0].longitude], {
-                        icon: startIcon
-                    }).addTo(map);
-                    startMarker.bindPopup(`🚩 Début: ${formatTime(travel.startTime)}<br/>🚗 ${travel.nom}`);
-
-                    var endIcon = L.divIcon({
-                        html: `🏁 <span style="background:${color}; padding:2px 5px; border-radius:10px; font-size:10px;">${travel.nom}</span>`,
-                        iconSize: [60, 25],
-                        className: 'marker-icon'
-                    });
-
-                    var endMarker = L.marker([travel.trajectory[travel.trajectory.length - 1].latitude, travel.trajectory[travel.trajectory.length - 1].longitude], {
-                        icon: endIcon
-                    }).addTo(map);
-                    endMarker.bindPopup(`🏁 Arrivée: ${formatTime(travel.endTime)}<br/>🚗 ${travel.nom}`);
-
-                    currentMarkers.push(startMarker, endMarker);
-
-                    points.forEach(p => bounds.extend(p));
-                }
-            });
-
-            if (bounds.isValid()) {
-                map.fitBounds(bounds, { padding: [30, 30] });
-            }
-        }
-
-        function updateLegend(filteredTravels) {
-            var legendDiv = document.getElementById("legend");
-            var legendItems = document.getElementById("legendItems");
-
-            if (filteredTravels.length <= 1) {
-                legendDiv.style.display = "none";
-                return;
-            }
-
-            var html = "";
-            filteredTravels.forEach(travel => {
-                var color = chauffeurColors[travel.chauffeurId];
-                html += `
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: ${color}; width: 20px; height: 4px;"></div>
-                            <span>${travel.nom}</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-road"></i></div>
+                        <div class="stat-info">
+                            <h3>${totalDistance.toFixed(2)} km</h3>
+                            <p>Distance totale</p>
                         </div>
-                    `;
-            });
-            legendItems.innerHTML = html;
-            legendDiv.style.display = "block";
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-tachometer-alt"></i></div>
+                        <div class="stat-info">
+                            <h3>${avgSpeed.toFixed(1)} km/h</h3>
+                            <p>Vitesse moyenne</p>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <h4>Détail par chauffeur</h4>
+                    <table style="width:100%; border-collapse:collapse;">
+                        <thead>
+                            <tr><th>Chauffeur</th><th>Couleur</th><th>Distance (km)</th><th>Vitesse moy.</th><th>Points</th></tr>
+                        </thead>
+                        <tbody>
+                            ${filteredTravels.map(t => `
+                                <tr>
+                                    <td>${t.nom}</td>
+                                    <td><span style="display:inline-block; width:20px; height:4px; background:${chauffeurColors[t.chauffeurId]}; border-radius:2px;"></span></td>
+                                    <td>${t.distanceKm}</td>
+                                    <td>${t.avgSpeed}</td>
+                                    <td>${t.totalPoints}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        } else {
+            statsDiv.style.display = 'none';
+        }
+    }
+
+    function formatTime(timeStr) {
+        if (!timeStr) return "--";
+        var d = new Date(timeStr);
+        return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    document.getElementById('datePicker').valueAsDate = new Date();
+</script>
+
+<style>
+    .filter-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        background: #f8fafc;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .filter-item:hover {
+            background: #e0e6ed;
         }
 
-        function selectTravel(chauffeurId) {
-            // Filtrer pour n'afficher que ce chauffeur
-            selectedChauffeurs.clear();
-            selectedChauffeurs.add(chauffeurId);
-            updateFilters();
-            updateTravelsList(currentData);
-            updateMap();
+    .btn-secondary {
+        background: #7f8c8d;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-left: 8px;
+    }
 
-            // Centrer sur le trajet sélectionné
-            var travel = currentData.travels.find(t => t.chauffeurId === chauffeurId);
-            if (travel && travel.trajectory && travel.trajectory.length >= 2) {
-                var points = travel.trajectory.map(p => [p.latitude, p.longitude]);
-                var bounds = L.latLngBounds(points);
-                map.fitBounds(bounds, { padding: [30, 30] });
-            }
+        .btn-secondary:hover {
+            background: #6c7a7a;
         }
 
-        function formatDate(dateStr) {
-            if (!dateStr) return "--";
-            var d = new Date(dateStr);
-            return d.toLocaleDateString('fr-FR');
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        background: #f8fafc;
+        padding: 15px;
+        border-radius: 12px;
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        background: #e8f4f8;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .stat-icon i {
+            font-size: 24px;
+            color: #00b4d8;
         }
 
-        function formatTime(timeStr) {
-            if (!timeStr) return "--";
-            var d = new Date(timeStr);
-            return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        }
+    .stat-info h3 {
+        font-size: 24px;
+        margin: 0;
+        color: #1a2a3a;
+    }
 
-        function formatDuration(ticks) {
-            if (!ticks) return "0 min";
-            var hours = Math.floor(ticks / 3600000000);
-            var minutes = Math.floor((ticks % 3600000000) / 60000000);
-            if (hours > 0) return `${hours}h ${minutes}min`;
-            return `${minutes} min`;
-        }
+    .stat-info p {
+        margin: 0;
+        color: #7f8c8d;
+        font-size: 13px;
+    }
 
-        function showLoading() {
-            var loader = document.createElement('div');
-            loader.id = 'loadingOverlay';
-            loader.className = 'loading';
-            loader.innerHTML = '⏳ Chargement des données...';
-            document.querySelector('.map-container').appendChild(loader);
-        }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-        function hideLoading() {
-            var loader = document.getElementById('loadingOverlay');
-            if (loader) loader.remove();
-        }
+    th, td {
+        padding: 8px 12px;
+        text-align: left;
+        border-bottom: 1px solid #e0e6ed;
+    }
 
-        // Charger la date d'aujourd'hui par défaut
-        document.getElementById("datePicker").valueAsDate = new Date();
-        loadTrafficData();
-    </script>
-</body>
-</html>
+    th {
+        background: #f8fafc;
+        font-weight: 600;
+    }
+</style>

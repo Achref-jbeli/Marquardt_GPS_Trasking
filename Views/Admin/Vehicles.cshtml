@@ -1,213 +1,23 @@
 ﻿@{
-    Layout = null;
-    ViewData["Title"] = "Gestion des véhicules";
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Véhicules";
     var vehicles = Model as List<GpsAdminServer.Models.Vehicle>;
 }
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Véhicules - GPS Admin</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<div class="page-header">
+    <h2><i class="fas fa-car"></i> Gestion des véhicules</h2>
+    <p>Ajoutez, modifiez ou supprimez les véhicules de la flotte</p>
+</div>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
-        }
+<div style="margin-bottom: 20px;">
+    <button class="btn btn-primary" onclick="openAddModal()">
+        <i class="fas fa-plus"></i> Ajouter un véhicule
+    </button>
+</div>
 
-        .navbar {
-            background: #2c3e50;
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-            .logo span {
-                color: #3498db;
-            }
-
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            margin-left: 20px;
-            padding: 8px 12px;
-            border-radius: 5px;
-        }
-
-            .nav-links a:hover {
-                background: #34495e;
-            }
-
-            .nav-links a.active {
-                background: #3498db;
-            }
-
-        .container {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .btn-add {
-            background: #27ae60;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        table {
-            width: 100%;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        th {
-            background: #3498db;
-            color: white;
-        }
-
-        .status-available {
-            background: #27ae60;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 15px;
-            font-size: 12px;
-            display: inline-block;
-        }
-
-        .status-inuse {
-            background: #f39c12;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 15px;
-            font-size: 12px;
-            display: inline-block;
-        }
-
-        .status-maintenance {
-            background: #e74c3c;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 15px;
-            font-size: 12px;
-            display: inline-block;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: white;
-            width: 500px;
-            margin: 100px auto;
-            padding: 30px;
-            border-radius: 10px;
-        }
-
-            .modal-content input, .modal-content select {
-                width: 100%;
-                padding: 10px;
-                margin: 10px 0;
-                border: 1px solid #ddd;
-                border-radius: 5px;
-            }
-
-        .close {
-            float: right;
-            cursor: pointer;
-            font-size: 24px;
-        }
-
-        .btn-save {
-            background: #3498db;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            width: 100%;
-            cursor: pointer;
-        }
-
-        .btn-edit {
-            background: #3498db;
-            color: white;
-            padding: 5px 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-right: 5px;
-        }
-
-        .btn-delete {
-            background: #e74c3c;
-            color: white;
-            padding: 5px 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
-    <div class="navbar">
-        <div class="logo"><span>🚗</span> GPS Tracking Admin</div>
-        <div class="nav-links">
-            <a href="/Admin/Dashboard">Dashboard</a>
-            <a href="/Admin/Users">Utilisateurs</a>
-            <a href="/Admin/Vehicles" class="active">Véhicules</a>
-            <a href="/Admin/Requests">Demandes</a>
-            <a href="/Admin/TrafficDashboard">Trafic</a>
-            <a href="/Account/Logout">Déconnexion</a>
-        </div>
-    </div>
-
-    <div class="container">
-        <div class="header">
-            <h2><i class="fas fa-car"></i> Gestion des véhicules</h2>
-            <button class="btn-add" onclick="openAddModal()"><i class="fas fa-plus"></i> Ajouter</button>
-        </div>
-
-        <table>
+<div class="card">
+    <div style="overflow-x: auto;">
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -215,6 +25,7 @@
                     <th>Marque</th>
                     <th>Modèle</th>
                     <th>Année</th>
+                    <th>Chauffeur</th>
                     <th>Statut</th>
                     <th>Actions</th>
                 </tr>
@@ -230,16 +41,30 @@
                     <td>@v.Brand</td>
                     <td>@v.Model</td>
                     <td>@v.Year</td>
+                    <td>@v.ChauffeurId ?? "-"</td>
                     <td>
-                        @if (v.Status == "Available") { <span class="status-available">Disponible</span> }
-                                else if (v.Status == "InUse") { <span class="status-inuse">En cours</span> }
-                                else { <span class="status-maintenance">Maintenance</span> }
+                        @if (v.Status == "Available")
+                                {
+                        <span class="badge badge-success">Disponible</span>
+                                }
+                                else if (v.Status == "InUse")
+                                {
+                        <span class="badge badge-warning">En cours</span>
+                                }
+                                else
+                                {
+                        <span class="badge badge-danger">Maintenance</span>
+                                }
                     </td>
                     <td>
-                        <button class="btn-edit" onclick="openEditModal(@v.Id, '@v.PlateNumber', '@v.Brand', '@v.Model', '@v.Year', '@v.Status', '@v.ChauffeurId')">Modifier</button>
+                        <button class="btn-sm btn-warning" onclick="openEditModal(@v.Id, '@v.PlateNumber', '@v.Brand', '@v.Model', '@v.Year', '@v.Status')">
+                            <i class="fas fa-edit"></i> Modifier
+                        </button>
                         <form method="post" action="/Admin/DeleteVehicle" style="display:inline;" onsubmit="return confirm('Supprimer ce véhicule ?')">
                             <input type="hidden" name="id" value="@v.Id" />
-                            <button type="submit" class="btn-delete">Supprimer</button>
+                            <button type="submit" class="btn-sm btn-danger">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </button>
                         </form>
                     </td>
                 </tr>
@@ -247,67 +72,141 @@
                 }
                 else
                 {
-                <tr><td colspan="7" style="text-align:center;">Aucun véhicule</td></tr>
+                <tr><td colspan="8" style="text-align:center;">Aucun véhicule</td></tr>
                 }
             </tbody>
         </table>
     </div>
+</div>
 
-    <!-- Modal Ajout -->
-    <div id="addModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeAddModal()">&times;</span>
-            <h3>Ajouter un véhicule</h3>
-            <form method="post" action="/Admin/AddVehicle">
-                <input type="text" name="PlateNumber" placeholder="Plaque d'immatriculation" required />
-                <input type="text" name="Brand" placeholder="Marque" required />
-                <input type="text" name="Model" placeholder="Modèle" required />
-                <input type="text" name="Year" placeholder="Année" />
-                <button type="submit" class="btn-save">Ajouter</button>
-            </form>
-        </div>
+<!-- Modal Ajout -->
+<div id="addModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+    <div class="modal-content" style="background:white; max-width:500px; margin:100px auto; padding:30px; border-radius:12px;">
+        <span onclick="closeAddModal()" style="float:right; cursor:pointer; font-size:24px;">&times;</span>
+        <h3>Ajouter un véhicule</h3>
+        <form method="post" action="/Admin/AddVehicle">
+            <div style="margin-bottom:15px;">
+                <label>Plaque d'immatriculation</label>
+                <input type="text" name="PlateNumber" class="form-control" required />
+            </div>
+            <div style="margin-bottom:15px;">
+                <label>Marque</label>
+                <input type="text" name="Brand" class="form-control" required />
+            </div>
+            <div style="margin-bottom:15px;">
+                <label>Modèle</label>
+                <input type="text" name="Model" class="form-control" required />
+            </div>
+            <div style="margin-bottom:15px;">
+                <label>Année</label>
+                <input type="text" name="Year" class="form-control" />
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">Ajouter</button>
+        </form>
     </div>
+</div>
 
-    <!-- Modal Edition -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeEditModal()">&times;</span>
-            <h3>Modifier le véhicule</h3>
-            <form method="post" action="/Admin/EditVehicle">
-                <input type="hidden" name="id" id="editId" />
-                <input type="text" name="plateNumber" id="editPlateNumber" placeholder="Plaque" required />
-                <input type="text" name="brand" id="editBrand" placeholder="Marque" required />
-                <input type="text" name="model" id="editModel" placeholder="Modèle" required />
-                <input type="text" name="year" id="editYear" placeholder="Année" />
-                <select name="status" id="editStatus">
+<!-- Modal Edition -->
+<div id="editModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+    <div class="modal-content" style="background:white; max-width:500px; margin:100px auto; padding:30px; border-radius:12px;">
+        <span onclick="closeEditModal()" style="float:right; cursor:pointer; font-size:24px;">&times;</span>
+        <h3>Modifier le véhicule</h3>
+        <form method="post" action="/Admin/EditVehicle">
+            <input type="hidden" name="id" id="editId" />
+            <div style="margin-bottom:15px;">
+                <label>Plaque</label>
+                <input type="text" name="plateNumber" id="editPlateNumber" class="form-control" required />
+            </div>
+            <div style="margin-bottom:15px;">
+                <label>Marque</label>
+                <input type="text" name="brand" id="editBrand" class="form-control" required />
+            </div>
+            <div style="margin-bottom:15px;">
+                <label>Modèle</label>
+                <input type="text" name="model" id="editModel" class="form-control" required />
+            </div>
+            <div style="margin-bottom:15px;">
+                <label>Année</label>
+                <input type="text" name="year" id="editYear" class="form-control" />
+            </div>
+            <div style="margin-bottom:15px;">
+                <label>Statut</label>
+                <select name="status" id="editStatus" class="form-control">
                     <option value="Available">Disponible</option>
                     <option value="InUse">En cours</option>
                     <option value="Maintenance">Maintenance</option>
                 </select>
-                <button type="submit" class="btn-save">Enregistrer</button>
-            </form>
-        </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">Enregistrer</button>
+        </form>
     </div>
+</div>
 
-    <script>
-        function openAddModal() { document.getElementById('addModal').style.display = 'block'; }
-        function closeAddModal() { document.getElementById('addModal').style.display = 'none'; }
+<script>
+    function openAddModal() { document.getElementById('addModal').style.display = 'block'; }
+    function closeAddModal() { document.getElementById('addModal').style.display = 'none'; }
+    function openEditModal(id, plate, brand, model, year, status) {
+        document.getElementById('editId').value = id;
+        document.getElementById('editPlateNumber').value = plate;
+        document.getElementById('editBrand').value = brand;
+        document.getElementById('editModel').value = model;
+        document.getElementById('editYear').value = year;
+        document.getElementById('editStatus').value = status;
+        document.getElementById('editModal').style.display = 'block';
+    }
+    function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
+    window.onclick = function (e) {
+        if (e.target == document.getElementById('addModal')) closeAddModal();
+        if (e.target == document.getElementById('editModal')) closeEditModal();
+    }
+</script>
 
-        function openEditModal(id, plate, brand, model, year, status, chauffeurId) {
-            document.getElementById('editId').value = id;
-            document.getElementById('editPlateNumber').value = plate;
-            document.getElementById('editBrand').value = brand;
-            document.getElementById('editModel').value = model;
-            document.getElementById('editYear').value = year;
-            document.getElementById('editStatus').value = status;
-            document.getElementById('editModal').style.display = 'block';
+<style>
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .data-table th, .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e6ed;
         }
-        function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
 
-        window.onclick = function(event) {
-            if (event.target == document.getElementById('addModal')) closeAddModal();
-            if (event.target == document.getElementById('editModal')) closeEditModal();
+        .data-table th {
+            background: #f8fafc;
+            font-weight: 600;
         }
-    </script>
-</body>
-</html>
+
+    .btn-sm {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 10px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-size: 12px;
+        margin-right: 5px;
+    }
+
+    .btn-warning {
+        background: #fef9e7;
+        color: #f39c12;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-danger {
+        background: #fdecea;
+        color: #e74c3c;
+        border: none;
+        cursor: pointer;
+    }
+</style>

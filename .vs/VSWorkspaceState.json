@@ -4,10 +4,9 @@
     "\\Controllers",
     "\\Services",
     "\\Views",
-    "\\Views\\Account",
     "\\Views\\Admin",
-    "\\Views\\Request"
+    "\\Views\\Shared"
   ],
-  "SelectedNode": "\\Views\\Request\\Dashboard.cshtml",
+  "SelectedNode": "\\Views\\Shared\\_AdminLayout.cshtml",
   "PreviewInSolutionExplorer": false
 }
